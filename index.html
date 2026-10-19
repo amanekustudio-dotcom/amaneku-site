@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AMANEKU</title>
+<script>
+  // ブラウザの言語が日本語なら日本語版へ、それ以外は英語版へ
+  try {
+    var ja = (navigator.language || "").toLowerCase().indexOf("ja") === 0;
+    location.replace(ja ? "ja/index.html" : "en/index.html");
+  } catch (e) {}
+</script>
+<style>
+  body { background: #f6f1e7; color: #1f1b16; font-family: system-ui, sans-serif; display: flex; min-height: 100vh; align-items: center; justify-content: center; margin: 0; }
+  a { margin: 0 12px; color: inherit; }
+  @media (prefers-color-scheme: dark) { body { background: #17140f; color: #ece4d4; } }
+</style>
+</head>
+<body>
+  <p>AMANEKU — <a href="en/index.html">English</a> <a href="ja/index.html">日本語</a></p>
+</body>
+</html>

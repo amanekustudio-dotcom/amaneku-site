@@ -1,0 +1,7 @@
+.env*
+node_modules/
+.DS_Store
+Thumbs.db
+# 事業の内部情報（公開リポジトリに入れない）
+CLAUDE.md
+docs/

@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<!-- 日本語ブラウザで英語版を開いたら、表示前に日本語版へ（自分でEnglishを選んだ人は除く） -->
+<script>try{if(/^ja/i.test(navigator.language||"")&&localStorage.getItem("amaneku-lang")!=="en"){location.replace(location.href.replace("/en/","/ja/"))}}catch(e){}</script>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Booking — AMANEKU</title>
+<meta name="description" content="How to book the nagauta shamisen experience in Kobe: choose an open date, pay online, and receive the venue details by email.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=Noto+Sans+JP:wght@400;500&family=Shippori+Mincho:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/site.js"></script>
+<script src="../assets/booking.js" defer></script>
+</head>
+<body>
+
+<div class="joshiki" aria-hidden="true"><span></span><span></span><span></span></div>
+<header class="site-header">
+  <div class="wrap">
+    <a class="logo" href="index.html" translate="no">AMANEKU</a>
+    <nav class="nav">
+      <a href="experience.html">Experience</a>
+      <a href="artist.html">The Artist</a>
+      <a href="booking.html" aria-current="page">Booking</a>
+      <a class="lang" href="../ja/booking.html" hreflang="ja">日本語</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="page-head">
+    <div class="bg" style="background-image:url(../assets/img/shibai-machi.jpg)"></div>
+    <div class="wrap">
+      <span class="eyebrow">Booking</span>
+      <h1 style="font-size:clamp(2.4rem,5vw,4.2rem)">How to book</h1>
+      <p class="lead">We open a date only once the artist and the venue are confirmed.</p>
+    </div>
+  </div>
+
+  <section class="seigaiha">
+    <div class="wrap">
+      <ol class="steps">
+        <li><h3>Choose a date</h3><p class="muted">Pick an open date and time, and tell us how many guests: one or two.</p></li>
+        <li><h3>Book and pay</h3><p class="muted">Enter your name and email, and pay online. Your booking is confirmed right away.</p></li>
+        <li><h3>Get the details</h3><p class="muted">We email you the venue address, directions, and the artist's name. See you in Kobe.</p></li>
+      </ol>
+    </div>
+  </section>
+
+  <section id="dates">
+    <div class="wrap">
+      <span class="eyebrow">Open dates</span>
+      <h2>Choose a date</h2>
+      <p class="muted" style="margin-top:-.6em">Highlighted days have open sessions. Tap a day to see every session that day, artist by artist.</p>
+      <div id="booking-app" class="bk"><noscript>Please enable JavaScript to see available dates.</noscript></div>
+    </div>
+  </section>
+
+  <section class="band">
+    <div class="wrap narrow">
+      <span class="eyebrow">FAQ</span>
+      <h2>Questions</h2>
+      <details><summary>Do I need any musical experience?</summary><p>None at all, and you don't need to read music. The artist teaches you step by step, starting with how to hold the shamisen.</p></details>
+      <details><summary>What language is the session in?</summary><p class="tbd" data-note="英語の説明を誰がするか">In English or Japanese. You choose when you book.</p></details>
+      <details><summary>Can a friend come along just to watch?</summary><p class="tbd" data-note="見学だけの同伴者を受けるか、料金はどうするか">Please ask us when you book.</p></details>
+      <details><summary>I can't sit on the floor for long. Is that OK?</summary><p class="tbd" data-note="椅子を用意できるか">Please let us know when you book.</p></details>
+      <details><summary>Is there an age limit?</summary><p class="tbd" data-note="年齢の条件（例：10歳以上）">Please ask us about children.</p></details>
+      <details><summary>Can I take photos and video?</summary><p>Yes. The duet at the end is the best moment, and we are happy to film it for you on your phone.</p></details>
+      <details><summary>How do I pay?</summary><p class="tbd" data-note="支払い方法">Online, by card, when you book.</p></details>
+      <details><summary>What if I need to cancel or change my date?</summary><p class="tbd" data-note="キャンセル・日程変更の規定">Cancellation terms will be listed here.</p></details>
+      <details><summary>Where exactly is the venue?</summary><p>In Kobe. We send the exact address after your booking is confirmed.</p></details>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="top">
+      <div>
+        <a class="logo" href="index.html" translate="no">AMANEKU</a>
+        <div>Nagauta shamisen experiences · Kobe</div>
+      </div>
+      <div>
+        <a href="https://www.instagram.com/amaneku.studio/">Instagram @amaneku.studio</a><br>
+        <span class="tbd" data-note="連絡先メールアドレス">hello@amaneku.example</span>
+      </div>
+      <div>
+        <span class="tbd" data-note="特定商取引法に基づく表記・プライバシーポリシー（決済をつなぐ前に用意）">Legal notice · Privacy</span><br>
+        © 2026 <span translate="no">AMANEKU</span>
+      </div>
+    </div>
+    <div class="credits">Images: Gakutei, “Woman Tuning a Shamisen,” The Metropolitan Museum of Art (CC0). Utagawa Kunisada, “Actor Playing Shamisen.” Hishikawa Moronobu, “Scenes from the Nakamura Kabuki Theatre.” Utagawa Toyoharu, “Kaomise Night at the Theatre District.” Public domain, via Wikimedia Commons.</div>
+  </div>
+</footer>
+
+</body>
+</html>
