@@ -1,9 +1,8 @@
 // 予約カレンダー（見本）
-// 日程・演奏家・場所はすべて見本データ。予約システムをつなぐときは SLOTS を実データに置き換える。
+// 日程・演奏家・会場は Supabase（get_available_slots）から読み込む。予約・決済はまだつないでいない。
 (function () {
   var LANG = document.documentElement.lang === "ja" ? "ja" : "en";
   var IMG = "../assets/img/";
-  var PRICE = 20000;
 
   var DOW_JA = ["日", "月", "火", "水", "木", "金", "土"];
   var DOW_EN = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -30,7 +29,7 @@
       cancel: "キャンセル", cancelText: "キャンセル規定は準備中です。",
       lang: "言語", langOpts: [["ja", "日本語"], ["en", "英語"]],
       book: "この内容で予約する", notReady: "予約システムは準備中です（この画面は見本です）。",
-      readMore: "インタビューを読む", only: function (n) { return n + " の日程だけを表示しています"; }, showAll: "すべての演奏家を表示", close: "閉じる", sample: "※ 表示している日程・演奏家・場所はダミーです（架空の人物です）。"
+      readMore: "インタビューを読む", loading: "日程を読み込んでいます…", loadError: "日程を読み込めませんでした。時間をおいて、もう一度開いてください。", only: function (n) { return n + " の日程だけを表示しています"; }, showAll: "すべての演奏家を表示", close: "閉じる", sample: "※ 表示している日程・演奏家・場所はダミーです（架空の人物です）。"
     },
     en: {
       dow: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
@@ -52,85 +51,65 @@
       cancel: "Cancellation", cancelText: "Cancellation terms coming soon.",
       lang: "Language", langOpts: [["en", "English"], ["ja", "Japanese"]],
       book: "Book this session", notReady: "Online booking is not open yet (this screen is a sample).",
-      readMore: "Read the interview", only: function (n) { return "Showing dates with " + n + " only"; }, showAll: "Show all artists", close: "Close", sample: "Dates, artists and places shown here are placeholders (fictional people)."
+      readMore: "Read the interview", loading: "Loading dates…", loadError: "We couldn't load the dates. Please try again in a moment.", only: function (n) { return "Showing dates with " + n + " only"; }, showAll: "Show all artists", close: "Close", sample: "Dates, artists and places shown here are placeholders (fictional people)."
     }
   }[LANG];
 
-  // ---- 見本データ ----
-  // 演奏家・会場は架空（ダミー）。実在の人物ではない。
-  var ARTISTS = {
-    a: { photo: "sample-artist-a.jpg",
-      name: { ja: "山科 宗一郎", en: "Soichiro Yamashina" },
-      school: { ja: "長唄三味線 · 演奏歴30年", en: "Nagauta shamisen · 30 years" },
-      bio: { ja: "8歳で三味線を始め、歌舞伎の地方（じかた）として東京と大阪の劇場に出演。現在は神戸を拠点に、舞台と稽古場を行き来している。", en: "Began the shamisen at eight and has played for kabuki theatres in Tokyo and Osaka. Now based in Kobe, between the stage and the practice room." } },
-    b: { photo: "sample-artist-b.jpg",
-      name: { ja: "早瀬 千鶴", en: "Chizuru Hayase" },
-      school: { ja: "長唄（唄・三味線）· 演奏歴18年", en: "Nagauta song & shamisen · 18 years" },
-      bio: { ja: "唄と三味線の両方を受け持つ。音大で西洋音楽を学んだのち長唄の道へ。初めての人に、音の面白さから伝えるのが得意。", en: "Sings and plays. Studied Western music before turning to nagauta, and loves showing first-timers what makes the sound special." } },
-    c: { photo: "sample-artist-c.jpg",
-      name: { ja: "藤代 律", en: "Ritsu Fujishiro" },
-      school: { ja: "長唄三味線 · 演奏歴12年", en: "Nagauta shamisen · 12 years" },
-      bio: { ja: "大学の邦楽部で長唄に出会い、卒業後に本格的に修業。英語での指導経験があり、海外公演にも参加している。", en: "Discovered nagauta in a university club and trained seriously after graduating. Teaches in English and has performed abroad." } },
-    d: { photo: "sample-artist-d.jpg",
-      name: { ja: "小野寺 はる", en: "Haru Onodera" },
-      school: { ja: "長唄三味線 · 演奏歴40年", en: "Nagauta shamisen · 40 years" },
-      bio: { ja: "神戸生まれ。半世紀近く長唄とともに暮らしてきた。自宅の稽古場で、お茶を飲みながらゆっくり進める時間を大切にしている。", en: "Born in Kobe, and has lived with nagauta for almost half a century. Prefers an unhurried session over tea in a home studio." } }
-  };
-  var PLACES = {
-    motomachi: { name: { ja: "神戸・元町", en: "Motomachi, Kobe" }, note: { ja: "JR元町駅から徒歩5分ほど", en: "About 5 min on foot from JR Motomachi Station" } },
-    sannomiya: { name: { ja: "神戸・三宮", en: "Sannomiya, Kobe" }, note: { ja: "三宮駅から徒歩8分ほど", en: "About 8 min on foot from Sannomiya Station" } },
-    kitano: { name: { ja: "神戸・北野", en: "Kitano, Kobe" }, note: { ja: "異人館街の近く。三宮駅から徒歩15分ほど", en: "Near the old foreign quarter. About 15 min on foot from Sannomiya" } },
-    okamoto: { name: { ja: "神戸・岡本", en: "Okamoto, Kobe" }, note: { ja: "阪急岡本駅から徒歩7分ほど", en: "About 7 min on foot from Hankyu Okamoto Station" } }
-  };
-  var SLOTS = [
-    { d: "2026-11-01", t: "10:30", a: "c", p: "kitano" },
-    { d: "2026-11-01", t: "14:00", a: "d", p: "okamoto" },
-    { d: "2026-11-01", t: "16:00", a: "a", p: "motomachi" },
-    { d: "2026-11-03", t: "10:30", a: "a", p: "motomachi" },
-    { d: "2026-11-03", t: "14:00", a: "c", p: "kitano" },
-    { d: "2026-11-07", t: "10:30", a: "b", p: "sannomiya" },
-    { d: "2026-11-07", t: "14:00", a: "a", p: "motomachi" },
-    { d: "2026-11-07", t: "16:00", a: "c", p: "kitano" },
-    { d: "2026-11-08", t: "10:30", a: "d", p: "okamoto" },
-    { d: "2026-11-08", t: "15:00", a: "b", p: "sannomiya", booked: true },
-    { d: "2026-11-11", t: "18:30", a: "c", p: "kitano" },
-    { d: "2026-11-14", t: "14:00", a: "a", p: "motomachi", booked: true },
-    { d: "2026-11-14", t: "16:30", a: "b", p: "sannomiya", booked: true },
-    { d: "2026-11-15", t: "10:30", a: "d", p: "okamoto" },
-    { d: "2026-11-15", t: "14:00", a: "b", p: "sannomiya" },
-    { d: "2026-11-19", t: "18:30", a: "c", p: "kitano" },
-    { d: "2026-11-21", t: "10:30", a: "a", p: "motomachi" },
-    { d: "2026-11-21", t: "13:00", a: "d", p: "okamoto" },
-    { d: "2026-11-21", t: "14:00", a: "b", p: "sannomiya" },
-    { d: "2026-11-21", t: "16:30", a: "c", p: "kitano" },
-    { d: "2026-11-22", t: "10:30", a: "b", p: "sannomiya" },
-    { d: "2026-11-23", t: "14:00", a: "a", p: "motomachi" },
-    { d: "2026-11-28", t: "14:00", a: "a", p: "motomachi" },
-    { d: "2026-11-28", t: "15:30", a: "d", p: "okamoto" },
-    { d: "2026-11-29", t: "14:00", a: "b", p: "sannomiya", booked: true },
-    { d: "2026-12-05", t: "14:00", a: "a", p: "motomachi" },
-    { d: "2026-12-05", t: "16:00", a: "c", p: "kitano" },
-    { d: "2026-12-06", t: "10:30", a: "b", p: "sannomiya" },
-    { d: "2026-12-12", t: "14:00", a: "d", p: "okamoto" },
-    { d: "2026-12-13", t: "10:30", a: "a", p: "motomachi" },
-    { d: "2026-12-19", t: "14:00", a: "c", p: "kitano" },
-    { d: "2026-12-20", t: "14:00", a: "b", p: "sannomiya" }
-  ];
+  // ---- データ（Supabase から読み込む） ----
+  // anon（公開用）の鍵。空き状況を見ることしかできない（予約やお客さまの情報は読めない）。
+  var SUPABASE_URL = "https://enoiaitbavewiusniakv.supabase.co";
+  var SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVub2lhaXRiYXZld2l1c25pYWt2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI0NjQ1OTEsImV4cCI6MjEwODA0MDU5MX0._7AKNLPYlJF07OljkDuGnpaGzaNeQOh64putvoms-uw";
+  var ARTISTS = {}, PLACES = {}, SLOTS = [];
 
-  // ---- 準備 ----
+  // 日本時間の日付と時刻
+  function jst(iso) {
+    var p = {};
+    new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Tokyo", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false })
+      .formatToParts(new Date(iso)).forEach(function (x) { p[x.type] = x.value; });
+    return { d: p.year + "-" + p.month + "-" + p.day, t: (p.hour === "24" ? "00" : p.hour) + ":" + p.minute };
+  }
+  function addRow(r) {
+    var years = r.artist_playing_since ? new Date().getFullYear() - r.artist_playing_since : null;
+    ARTISTS[r.artist_slug] = {
+      photo: r.artist_photo_url,
+      name: { ja: r.artist_name_ja, en: r.artist_name_en },
+      school: {
+        ja: (r.artist_role_ja || "長唄") + (years ? " · 演奏歴" + years + "年" : ""),
+        en: (r.artist_role_en || "Nagauta") + (years ? " · " + years + " years" : "")
+      },
+      bio: { ja: r.artist_bio_ja || "", en: r.artist_bio_en || "" }
+    };
+    PLACES[r.venue_slug] = { name: { ja: r.area_ja, en: r.area_en }, note: { ja: r.access_ja || "", en: r.access_en || "" } };
+    var st = jst(r.starts_at), en = jst(r.ends_at);
+    SLOTS.push({ id: r.slot_id, d: st.d, t: st.t, e: en.t, a: r.artist_slug, p: r.venue_slug, booked: !r.is_available,
+      languages: r.languages, price: r.price_jpy, maxGuests: r.max_guests, minGuests: r.min_guests });
+  }
+
   var root = document.getElementById("booking-app");
   if (!root) return;
+  var am = /[?&]artist=([\w-]+)/.exec(location.search);
+  var onlySlug = am ? am[1] : null;
+  root.innerHTML = '<p class="muted">' + T.loading + "</p>";
+  fetch(SUPABASE_URL + "/rest/v1/rpc/get_available_slots", {
+    method: "POST",
+    headers: { apikey: SUPABASE_ANON_KEY, Authorization: "Bearer " + SUPABASE_ANON_KEY, "Content-Type": "application/json" },
+    body: JSON.stringify(onlySlug ? { p_artist_slug: onlySlug } : {})
+  })
+    .then(function (r) { if (!r.ok) throw new Error(String(r.status)); return r.json(); })
+    .then(function (rows) { rows.forEach(addRow); init(); })
+    .catch(function () { root.innerHTML = '<p class="muted">' + T.loadError + "</p>"; });
+
+  function init() {
+  // ---- 準備 ----
   function pad(n) { return (n < 10 ? "0" : "") + n; }
   function key(d) { return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()); }
   function parse(k) { var p = k.split("-"); return new Date(+p[0], +p[1] - 1, +p[2]); }
   function yen(n) { return "¥" + n.toLocaleString("en-US"); }
-  function endTime(t) { var p = t.split(":"); var m = +p[0] * 60 + +p[1] + 60; return pad(Math.floor(m / 60)) + ":" + pad(m % 60); }
   function el(tag, cls, html) { var e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; }
 
-  var m = /[?&]artist=(\w+)/.exec(location.search);
-  var only = m && ARTISTS[m[1]] ? m[1] : null;
+  var only = onlySlug;
   var byDay = {};
-  SLOTS.filter(function (s) { return !only || s.a === only; }).forEach(function (s, i) { s.id = i; (byDay[s.d] = byDay[s.d] || []).push(s); });
+  SLOTS.filter(function (s) { return !only || s.a === only; }).forEach(function (s) { (byDay[s.d] = byDay[s.d] || []).push(s); });
   Object.keys(byDay).forEach(function (k) { byDay[k].sort(function (x, y) { return x.t < y.t ? -1 : 1; }); });
 
   var today = new Date(); today.setHours(0, 0, 0, 0);
@@ -151,7 +130,7 @@
   // ---- 骨組み ----
   root.innerHTML = "";
   if (only) {
-    var chip = el("div", "bk-filter", "<span>" + T.only(ARTISTS[only].name[LANG]) + "</span>");
+    var chip = el("div", "bk-filter", "<span>" + T.only(ARTISTS[only] ? ARTISTS[only].name[LANG] : only) + "</span>");
     var all = el("a", null, T.showAll); all.href = location.pathname + "#dates";
     chip.appendChild(all); root.parentNode.insertBefore(chip, root);
   }
@@ -225,9 +204,9 @@
       c.innerHTML =
         '<img src="' + IMG + a.photo + '" alt="">' +
         '<div class="info">' +
-          '<div class="row1"><span class="time">' + s.t + '<small>–' + endTime(s.t) + '</small></span><span class="badge' + (s.booked ? " is-full" : "") + '">' + T.status(!s.booked) + '</span></div>' +
+          '<div class="row1"><span class="time">' + s.t + '<small>–' + s.e + '</small></span><span class="badge' + (s.booked ? " is-full" : "") + '">' + T.status(!s.booked) + '</span></div>' +
           '<div class="nm">' + a.name[LANG] + '</div>' +
-          '<div class="meta"><span>' + p.name[LANG] + '</span><span>' + T.minutes + '</span><span>' + T.private + '</span><span>' + yen(PRICE) + ' ' + T.perPerson + '</span></div>' +
+          '<div class="meta"><span>' + p.name[LANG] + '</span><span>' + T.minutes + '</span><span>' + T.private + '</span><span>' + yen(s.price) + ' ' + T.perPerson + '</span></div>' +
         '</div>' +
         '<span class="chev" aria-hidden="true">→</span>';
       c.onclick = function () { if (!s.booked) openDetail(s); };
@@ -241,7 +220,7 @@
   function openDetail(s) {
     var a = ARTISTS[s.a], p = PLACES[s.p], d = parse(s.d);
     var opts = "";
-    for (var n = 1; n <= 2; n++) opts += '<option value="' + n + '">' + T.guestN(n) + "</option>";
+    for (var n = (s.minGuests || 1); n <= (s.maxGuests || 2); n++) opts += '<option value="' + n + '">' + T.guestN(n) + "</option>";
     dlg.innerHTML =
       '<button type="button" class="bk-close" aria-label="' + T.close + '">×</button>' +
       '<div class="bk-top">' +
@@ -252,26 +231,27 @@
       '<div class="bk-body">' +
         '<h3>' + T.title + '</h3>' +
         '<dl>' +
-          '<dt>' + T.when + '</dt><dd>' + T.dateLong(d) + '　' + s.t + '–' + endTime(s.t) + '</dd>' +
+          '<dt>' + T.when + '</dt><dd>' + T.dateLong(d) + '　' + s.t + '–' + s.e + '</dd>' +
           '<dt>' + T.length + '</dt><dd>' + T.minutes + '</dd>' +
           '<dt>' + T.where + '</dt><dd>' + p.name[LANG] + '<small>' + p.note[LANG] + '<br>' + T.addr + '</small></dd>' +
-          '<dt>' + T.lang + '</dt><dd><div class="seg">' + T.langOpts.map(function (o, i) { return '<label><input type="radio" name="bk-lang" value="' + o[0] + '"' + (i === 0 ? ' checked' : '') + '><span>' + o[1] + '</span></label>'; }).join('') + '</div></dd>' +
+          '<dt>' + T.lang + '</dt><dd><div class="seg">' + T.langOpts.filter(function (o) { return s.languages.indexOf(o[0]) >= 0; }).map(function (o, i) { return '<label><input type="radio" name="bk-lang" value="' + o[0] + '"' + (i === 0 ? ' checked' : '') + '><span>' + o[1] + '</span></label>'; }).join('') + '</div></dd>' +
           '<dt>' + T.incl + '</dt><dd>' + T.inclText + '</dd>' +
           '<dt>' + T.cancel + '</dt><dd>' + T.cancelText + '</dd>' +
-          '<dt>' + T.price + '</dt><dd>' + yen(PRICE) + ' ' + T.perPerson + '</dd>' +
+          '<dt>' + T.price + '</dt><dd>' + yen(s.price) + ' ' + T.perPerson + '</dd>' +
         '</dl>' +
         '<div class="bk-total"><label>' + T.guests + ' <select>' + opts + '</select></label>' +
-          '<div><span class="muted">' + T.total + '</span> <strong class="sum">' + yen(PRICE) + '</strong></div></div>' +
+          '<div><span class="muted">' + T.total + '</span> <strong class="sum">' + yen(s.price * (s.minGuests || 1)) + '</strong></div></div>' +
         '<button type="button" class="btn" disabled aria-disabled="true">' + T.book + '</button>' +
         '<p class="muted bk-note">' + T.notReady + '</p>' +
       '</div>';
     dlg.querySelector(".bk-close").onclick = function () { dlg.close(); };
     var sel = dlg.querySelector("select"), sum = dlg.querySelector(".sum");
-    sel.onchange = function () { sum.textContent = yen(PRICE * +sel.value); };
+    sel.onchange = function () { sum.textContent = yen(s.price * +sel.value); };
     if (dlg.showModal) dlg.showModal(); else dlg.setAttribute("open", "");
   }
 
   renderCal();
   renderList(false);
   root.insertAdjacentElement("afterend", el("p", "muted bk-sample", T.sample));
+  }
 })();
