@@ -71,7 +71,7 @@ em { font-style: italic; }
 .narrow { max-width: 760px; }
 .center { text-align: center; }
 .muted { color: var(--ink-soft); }
-section { padding: clamp(80px, 12vw, 160px) 0; position: relative; }
+section { padding: clamp(56px, 7vw, 96px) 0; position: relative; }
 
 .eyebrow {
   display: inline-flex; align-items: center; gap: 12px;
@@ -272,7 +272,7 @@ html[lang="ja"] .facts dd { font-family: var(--serif-ja); font-size: 1.15rem; }
 .teacher .portrait::before { width: 56px; height: 56px; }
 .nw { display: inline-block; }
 
-.block { margin-top: clamp(72px, 9vw, 120px); }
+.block { margin-top: clamp(56px, 6vw, 80px); }
 .block:first-child { margin-top: 0; }
 
 .highlights { list-style: none; padding: 0; margin: 0; display: grid; gap: 0; }
@@ -456,7 +456,7 @@ html[lang="en"] .bk-top .nm { font-family: var(--serif-en); letter-spacing: .01e
 .bk-total select { font: inherit; padding: 6px 10px; margin-left: 8px; border: 1px solid var(--line); background: var(--washi); color: var(--ink); }
 .bk-total .sum { font-family: var(--serif-en); font-size: 1.8rem; font-weight: 500; margin-left: 8px; }
 .bk-body .btn { width: 100%; justify-content: center; }
-.bk-body .btn:disabled { opacity: .5; cursor: not-allowed; }
+.bk-body .btn:disabled { background: var(--washi-2); color: var(--ink-soft); border-color: var(--line); box-shadow: none; transform: none; cursor: not-allowed; }
 .bk-note { font-size: .76rem; margin: 10px 0 0; text-align: center; }
 @media (max-width: 560px) {
   .bk-top { grid-template-columns: 72px 1fr; gap: 16px; padding: 24px 20px; }
@@ -591,3 +591,6 @@ section.legal { padding: clamp(48px, 8vw, 96px) 0 clamp(80px, 10vw, 128px); }
 .lookup-form { border-top: none; padding-top: 0; max-width: 480px; }
 .lookup-form .fld small { display: block; font-size: .76rem; margin-top: 4px; }
 .lookup-form .btn { width: 100%; justify-content: center; margin-top: 8px; }
+
+/* 同じ背景の区切りが続くところは、余白を二重にしない */
+#dates + .band { padding-top: 0; }

@@ -86,7 +86,7 @@
   function addRow(r) {
     var years = r.artist_playing_since ? new Date().getFullYear() - r.artist_playing_since : null;
     ARTISTS[r.artist_slug] = {
-      photo: r.artist_photo_url,
+      photo: /^https?:\/\//.test(r.artist_photo_url || "") ? r.artist_photo_url : IMG + (r.artist_photo_url || ""),
       name: { ja: r.artist_name_ja, en: r.artist_name_en },
       school: {
         ja: (r.artist_role_ja || "長唄") + (years ? " · 演奏歴" + years + "年" : ""),
@@ -230,7 +230,7 @@
       c.type = "button";
       if (s.booked) c.setAttribute("aria-disabled", "true");
       c.innerHTML =
-        '<img src="' + IMG + a.photo + '" alt="">' +
+        '<img src="' + a.photo + '" alt="">' +
         '<div class="info">' +
           '<div class="row1"><span class="time">' + s.t + '<small>–' + s.e + '</small></span><span class="badge' + (s.booked ? " is-full" : "") + '">' + T.status(!s.booked) + '</span></div>' +
           '<div class="nm">' + a.name[LANG] + '</div>' +
@@ -252,7 +252,7 @@
     dlg.innerHTML =
       '<button type="button" class="bk-close" aria-label="' + T.close + '">×</button>' +
       '<div class="bk-top">' +
-        '<img src="' + IMG + a.photo + '" alt="">' +
+        '<img src="' + a.photo + '" alt="">' +
         '<div><div class="eyebrow">' + a.school[LANG] + '</div><div class="nm">' + a.name[LANG] + '</div>' +
         '<p>' + a.bio[LANG] + '</p><a href="artist.html#artist-' + s.a + '">' + T.readMore + ' →</a></div>' +
       '</div>' +
@@ -281,7 +281,7 @@
           '<p class="muted bk-note">' + T.shareNote + '</p>' +
           '<label class="bk-agree"><input type="checkbox" name="agree"> <span>' + T.agree + '</span></label>' +
           '<p class="bk-error" role="alert" hidden></p>' +
-          '<button type="submit" class="btn">' + T.book + '</button>' +
+          '<button type="submit" class="btn" disabled>' + T.book + '</button>' +
           '<p class="muted bk-note">' + T.payNote + '</p>' +
         '</form>' +
       '</div>';
@@ -290,9 +290,11 @@
     sel.onchange = function () { sum.textContent = yen(s.price * +sel.value); };
     var form = dlg.querySelector(".bk-form"), err = form.querySelector(".bk-error"), btn = form.querySelector("button[type=submit]");
     function showErr(msg) { err.textContent = msg; err.hidden = false; }
-    function reset() { btn.disabled = false; btn.textContent = T.book; }
+    function reset() { btn.disabled = !form.elements.agree.checked; btn.textContent = T.book; }
     form.addEventListener("input", function () { err.hidden = true; });
     form.addEventListener("change", function () { err.hidden = true; });
+    var agree = form.elements.agree;
+    agree.addEventListener("change", function () { btn.disabled = !agree.checked; });
     form.onsubmit = function (e) {
       e.preventDefault();
       err.hidden = true;
