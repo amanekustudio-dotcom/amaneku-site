@@ -1,5 +1,6 @@
-// 予約カレンダー（見本）
-// 日程・演奏家・会場は Supabase（get_available_slots）から読み込む。予約・決済はまだつないでいない。
+// 予約カレンダーと予約フォーム
+// 日程・演奏家・会場は Supabase（get_available_slots）から読み込む。
+// 予約は Edge Function（create-checkout）で仮押さえ → Stripe の支払い画面へ移る。
 (function () {
   var LANG = document.documentElement.lang === "ja" ? "ja" : "en";
   var IMG = "../assets/img/";
@@ -26,9 +27,16 @@
       addr: "詳しい住所は、予約の確定後にメールでお知らせします。",
       guestN: function (n) { return n + "名"; },
       incl: "含まれるもの", inclText: "60分の貸切体験、三味線と道具一式、お茶、解説カード、持ち帰り用カード",
-      cancel: "キャンセル", cancelText: "キャンセル規定は準備中です。",
+      cancel: "キャンセル", cancelText: '4日前まで全額返金、3日前〜前日は50%、当日は返金なし。<a href="legal.html#cancel">くわしく</a>',
       lang: "言語", langOpts: [["ja", "日本語"], ["en", "英語"]],
-      book: "この内容で予約する", notReady: "予約システムは準備中です（この画面は見本です）。",
+      book: "お支払いへ進む", sending: "お支払いの画面を準備しています…",
+      formTitle: "ご予約の方", name: "お名前", email: "メールアドレス", country: "お住まいの国・地域", phone: "電話番号（任意）", message: "ご要望（任意）",
+      messageHint: "正座が難しい、など。当日の配慮に必要なことだけで大丈夫です。",
+      shareNote: 'お名前・人数・言語・ご要望は、担当の演奏家にお伝えします（<a href="legal.html#privacy" target="_blank">プライバシーポリシー</a>）。',
+      agree: '<a href="legal.html#cancel" target="_blank">キャンセル規定</a>と<a href="legal.html#terms" target="_blank">利用規約</a>に同意します',
+      payNote: "次の画面（Stripe）でカード情報を入力し、お支払いが完了した時点で予約が確定します。30分以内にお手続きください。",
+      errors: { slot_unavailable: "申し訳ありません。この回は、ちょうど別の方が予約の手続き中です。別の日時をお選びください。", booking_closed: "この回の受付は締め切りました。", terms_required: "キャンセル規定と利用規約への同意が必要です。", invalid_input: "お名前とメールアドレスを確認してください。", error: "うまくいきませんでした。時間をおいて、もう一度お試しください。" },
+      released: "お支払いを中止しました。この回の仮押さえは外れています。",
       readMore: "インタビューを読む", loading: "日程を読み込んでいます…", loadError: "日程を読み込めませんでした。時間をおいて、もう一度開いてください。", only: function (n) { return n + " の日程だけを表示しています"; }, showAll: "すべての演奏家を表示", close: "閉じる", sample: "※ 表示している日程・演奏家・場所はダミーです（架空の人物です）。"
     },
     en: {
@@ -48,9 +56,16 @@
       addr: "The exact address is emailed to you after your booking is confirmed.",
       guestN: function (n) { return n + (n === 1 ? " guest" : " guests"); },
       incl: "Included", inclText: "Private 60-minute session, shamisen and accessories, Japanese tea, guide card, take-home card",
-      cancel: "Cancellation", cancelText: "Cancellation terms coming soon.",
+      cancel: "Cancellation", cancelText: 'Full refund up to 4 days before; 50% from 1–3 days before; no refund on the day. <a href="legal.html#cancel">Details</a>',
       lang: "Language", langOpts: [["en", "English"], ["ja", "Japanese"]],
-      book: "Book this session", notReady: "Online booking is not open yet (this screen is a sample).",
+      book: "Continue to payment", sending: "Preparing the payment page…",
+      formTitle: "Your details", name: "Full name", email: "Email", country: "Country or region", phone: "Phone (optional)", message: "Anything we should know? (optional)",
+      messageHint: "For example, if sitting on the floor is difficult. Only what helps us on the day.",
+      shareNote: 'We share your name, number of guests, language and requests with your artist (<a href="legal.html#privacy" target="_blank">Privacy policy</a>).',
+      agree: 'I agree to the <a href="legal.html#cancel" target="_blank">cancellation policy</a> and <a href="legal.html#terms" target="_blank">terms of service</a>',
+      payNote: "You'll enter your card details on the next screen (Stripe). Your booking is confirmed once payment is complete. Please finish within 30 minutes.",
+      errors: { slot_unavailable: "Sorry, someone else is booking this session right now. Please choose another time.", booking_closed: "Bookings for this session have closed.", terms_required: "Please agree to the cancellation policy and terms of service.", invalid_input: "Please check your name and email.", error: "Something went wrong. Please try again in a moment." },
+      released: "Payment was cancelled. This session is no longer held for you.",
       readMore: "Read the interview", loading: "Loading dates…", loadError: "We couldn't load the dates. Please try again in a moment.", only: function (n) { return "Showing dates with " + n + " only"; }, showAll: "Show all artists", close: "Close", sample: "Dates, artists and places shown here are placeholders (fictional people)."
     }
   }[LANG];
@@ -90,14 +105,27 @@
   var am = /[?&]artist=([\w-]+)/.exec(location.search);
   var onlySlug = am ? am[1] : null;
   root.innerHTML = '<p class="muted">' + T.loading + "</p>";
-  fetch(SUPABASE_URL + "/rest/v1/rpc/get_available_slots", {
-    method: "POST",
-    headers: { apikey: SUPABASE_ANON_KEY, Authorization: "Bearer " + SUPABASE_ANON_KEY, "Content-Type": "application/json" },
-    body: JSON.stringify(onlySlug ? { p_artist_slug: onlySlug } : {})
-  })
+  function sb(path, body) {
+    return fetch(SUPABASE_URL + path, {
+      method: "POST",
+      headers: { apikey: SUPABASE_ANON_KEY, Authorization: "Bearer " + SUPABASE_ANON_KEY, "Content-Type": "application/json" },
+      body: JSON.stringify(body)
+    });
+  }
+  var rel = /[?&]released=([0-9a-f-]{36})/i.exec(location.search);
+  if (rel && history.replaceState) {
+    var q = location.search.replace(/([?&])released=[^&]*&?/, "$1").replace(/[?&]$/, "");
+    history.replaceState(null, "", location.pathname + q + location.hash);
+  }
+  (rel ? sb("/functions/v1/release-hold", { token: rel[1] }).catch(function () {}) : Promise.resolve())
+    .then(function () { return sb("/rest/v1/rpc/get_available_slots", onlySlug ? { p_artist_slug: onlySlug } : {}); })
     .then(function (r) { if (!r.ok) throw new Error(String(r.status)); return r.json(); })
-    .then(function (rows) { rows.forEach(addRow); init(); })
+    .then(function (rows) {
+      rows.forEach(addRow); init();
+      if (rel) root.parentNode.insertBefore(el0("p", "bk-flash", T.released), root.previousSibling && root.previousSibling.className === "bk-filter" ? root.previousSibling : root);
+    })
     .catch(function () { root.innerHTML = '<p class="muted">' + T.loadError + "</p>"; });
+  function el0(tag, cls, text) { var e = document.createElement(tag); e.className = cls; e.textContent = text; return e; }
 
   function init() {
   // ---- 準備 ----
@@ -241,12 +269,50 @@
         '</dl>' +
         '<div class="bk-total"><label>' + T.guests + ' <select>' + opts + '</select></label>' +
           '<div><span class="muted">' + T.total + '</span> <strong class="sum">' + yen(s.price * (s.minGuests || 1)) + '</strong></div></div>' +
-        '<button type="button" class="btn" disabled aria-disabled="true">' + T.book + '</button>' +
-        '<p class="muted bk-note">' + T.notReady + '</p>' +
+        '<form class="bk-form" novalidate>' +
+          '<h4>' + T.formTitle + '</h4>' +
+          '<label class="fld"><span>' + T.name + '</span><input name="name" required maxlength="200" autocomplete="name"></label>' +
+          '<label class="fld"><span>' + T.email + '</span><input name="email" type="email" required maxlength="254" autocomplete="email"></label>' +
+          '<div class="fld-row">' +
+            '<label class="fld"><span>' + T.country + '</span><input name="country" maxlength="100" autocomplete="country-name"></label>' +
+            '<label class="fld"><span>' + T.phone + '</span><input name="phone" type="tel" maxlength="50" autocomplete="tel"></label>' +
+          '</div>' +
+          '<label class="fld"><span>' + T.message + '</span><textarea name="message" rows="2" maxlength="2000" placeholder="' + T.messageHint + '"></textarea></label>' +
+          '<p class="muted bk-note">' + T.shareNote + '</p>' +
+          '<label class="bk-agree"><input type="checkbox" name="agree"> <span>' + T.agree + '</span></label>' +
+          '<p class="bk-error" role="alert" hidden></p>' +
+          '<button type="submit" class="btn">' + T.book + '</button>' +
+          '<p class="muted bk-note">' + T.payNote + '</p>' +
+        '</form>' +
       '</div>';
     dlg.querySelector(".bk-close").onclick = function () { dlg.close(); };
     var sel = dlg.querySelector("select"), sum = dlg.querySelector(".sum");
     sel.onchange = function () { sum.textContent = yen(s.price * +sel.value); };
+    var form = dlg.querySelector(".bk-form"), err = form.querySelector(".bk-error"), btn = form.querySelector("button[type=submit]");
+    function showErr(msg) { err.textContent = msg; err.hidden = false; }
+    function reset() { btn.disabled = false; btn.textContent = T.book; }
+    form.addEventListener("input", function () { err.hidden = true; });
+    form.addEventListener("change", function () { err.hidden = true; });
+    form.onsubmit = function (e) {
+      e.preventDefault();
+      err.hidden = true;
+      var f = form.elements;
+      if (!f.name.value.trim() || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(f.email.value.trim())) { showErr(T.errors.invalid_input); return; }
+      if (!f.agree.checked) { showErr(T.errors.terms_required); return; }
+      var langEl = dlg.querySelector('input[name="bk-lang"]:checked');
+      btn.disabled = true; btn.textContent = T.sending;
+      sb("/functions/v1/create-checkout", {
+        slot_id: s.id, guests: +sel.value, language: langEl ? langEl.value : LANG,
+        name: f.name.value, email: f.email.value, country: f.country.value, phone: f.phone.value, message: f.message.value,
+        agree: true, page_lang: LANG
+      })
+        .then(function (r) { return r.json().catch(function () { return {}; }); })
+        .then(function (res) {
+          if (res.url) { location.href = res.url; return; }
+          showErr(T.errors[res.error] || T.errors.error); reset();
+        })
+        .catch(function () { showErr(T.errors.error); reset(); });
+    };
     if (dlg.showModal) dlg.showModal(); else dlg.setAttribute("open", "");
   }
 

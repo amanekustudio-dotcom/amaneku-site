@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<!-- 日本語ブラウザで英語版を開いたら、表示前に日本語版へ（自分でEnglishを選んだ人は除く） -->
+<script>try{if(/^ja/i.test(navigator.language||"")&&localStorage.getItem("amaneku-lang")!=="en"){location.replace(location.href.replace("/en/","/ja/"))}}catch(e){}</script>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Your booking — AMANEKU</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=Noto+Sans+JP:wght@400;500&family=Shippori+Mincho:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/style.css">
+<script src="../assets/site.js"></script>
+<script src="../assets/confirm.js" defer></script>
+</head>
+<body>
+
+<div class="joshiki" aria-hidden="true"><span></span><span></span><span></span></div>
+<header class="site-header">
+  <div class="wrap">
+    <a class="logo" href="index.html" translate="no">AMANEKU</a>
+    <nav class="nav">
+      <a href="experience.html">Experience</a>
+      <a href="artist.html">The Artist</a>
+      <a href="booking.html">Booking</a>
+      <a class="lang" href="../ja/confirm.html" hreflang="ja">日本語</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="page-head">
+    <div class="bg" style="background-image:url(../assets/img/shibai-machi.jpg)"></div>
+    <div class="wrap">
+      <span class="eyebrow">Booking</span>
+      <h1 style="font-size:clamp(1.9rem,4vw,3.2rem)">Your booking</h1>
+    </div>
+  </div>
+
+  <section class="legal">
+    <div class="wrap narrow">
+      <div id="confirm-app" aria-live="polite"></div>
+    </div>
+  </section>
+</main>
+
+
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="top">
+      <div>
+        <a class="logo" href="index.html" translate="no">AMANEKU</a>
+        <div>Nagauta shamisen experiences · Kobe</div>
+      </div>
+      <div>
+        <a href="https://www.instagram.com/amaneku.studio/">Instagram @amaneku.studio</a><br>
+        <span class="tbd" data-note="連絡先メールアドレス">hello@amaneku.example</span>
+      </div>
+      <div>
+        <a href="lookup.html">Find your booking</a> · <a href="legal.html#tokushoho">Legal notice</a> · <a href="legal.html#terms">Terms</a> · <a href="legal.html#privacy">Privacy</a><br>
+        © 2026 <span translate="no">AMANEKU</span>
+      </div>
+    </div>
+    <div class="credits">Images: Gakutei, “Woman Tuning a Shamisen,” The Metropolitan Museum of Art (CC0). Utagawa Kunisada, “Actor Playing Shamisen.” Hishikawa Moronobu, “Scenes from the Nakamura Kabuki Theatre.” Utagawa Toyoharu, “Kaomise Night at the Theatre District.” Public domain, via Wikimedia Commons.</div>
+  </div>
+</footer>
+
+</body>
+</html>
