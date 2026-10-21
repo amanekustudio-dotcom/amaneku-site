@@ -30,7 +30,7 @@
       cancel: "キャンセル", cancelText: '4日前まで全額返金、3日前〜前日は50%、当日は返金なし。<a href="legal.html#cancel">くわしく</a>',
       lang: "言語", langOpts: [["ja", "日本語"], ["en", "英語"]],
       book: "お支払いへ進む", sending: "お支払いの画面を準備しています…",
-      formTitle: "ご予約の方", name: "お名前", email: "メールアドレス", country: "お住まいの国・地域", phone: "電話番号（任意）", message: "ご要望（任意）",
+      formTitle: "ご予約の方", name: "お名前", email: "メールアドレス", country: "お住まいの国・地域（任意）", required: "必須", needAll: "お名前・メールアドレスを入力し、同意にチェックすると進めます。", phone: "電話番号（任意）", message: "ご要望（任意）",
       messageHint: "正座が難しい、など。当日の配慮に必要なことだけで大丈夫です。",
       shareNote: 'お名前・人数・言語・ご要望は、担当の演奏家にお伝えします（<a href="legal.html#privacy" target="_blank">プライバシーポリシー</a>）。',
       agree: '<a href="legal.html#cancel" target="_blank">キャンセル規定</a>と<a href="legal.html#terms" target="_blank">利用規約</a>に同意します',
@@ -59,7 +59,7 @@
       cancel: "Cancellation", cancelText: 'Full refund up to 4 days before; 50% from 1–3 days before; no refund on the day. <a href="legal.html#cancel">Details</a>',
       lang: "Language", langOpts: [["en", "English"], ["ja", "Japanese"]],
       book: "Continue to payment", sending: "Preparing the payment page…",
-      formTitle: "Your details", name: "Full name", email: "Email", country: "Country or region", phone: "Phone (optional)", message: "Anything we should know? (optional)",
+      formTitle: "Your details", name: "Full name", email: "Email", country: "Country or region (optional)", required: "Required", needAll: "Enter your name and email and tick the box to continue.", phone: "Phone (optional)", message: "Anything we should know? (optional)",
       messageHint: "For example, if sitting on the floor is difficult. Only what helps us on the day.",
       shareNote: 'We share your name, number of guests, language and requests with your artist (<a href="legal.html#privacy" target="_blank">Privacy policy</a>).',
       agree: 'I agree to the <a href="legal.html#cancel" target="_blank">cancellation policy</a> and <a href="legal.html#terms" target="_blank">terms of service</a>',
@@ -276,17 +276,18 @@
           '<div><span class="muted">' + T.total + '</span> <strong class="sum">' + yen(s.price * (s.minGuests || 1)) + '</strong></div></div>' +
         '<form class="bk-form" novalidate>' +
           '<h4>' + T.formTitle + '</h4>' +
-          '<label class="fld"><span>' + T.name + '</span><input name="name" required maxlength="200" autocomplete="name"></label>' +
-          '<label class="fld"><span>' + T.email + '</span><input name="email" type="email" required maxlength="254" autocomplete="email"></label>' +
+          '<label class="fld"><span>' + T.name + ' <em class="req">' + T.required + '</em></span><input name="name" required maxlength="200" autocomplete="name"></label>' +
+          '<label class="fld"><span>' + T.email + ' <em class="req">' + T.required + '</em></span><input name="email" type="email" required maxlength="254" autocomplete="email"></label>' +
           '<div class="fld-row">' +
             '<label class="fld"><span>' + T.country + '</span><input name="country" maxlength="100" autocomplete="country-name"></label>' +
             '<label class="fld"><span>' + T.phone + '</span><input name="phone" type="tel" maxlength="50" autocomplete="tel"></label>' +
           '</div>' +
           '<label class="fld"><span>' + T.message + '</span><textarea name="message" rows="2" maxlength="2000" placeholder="' + T.messageHint + '"></textarea></label>' +
           '<p class="muted bk-note">' + T.shareNote + '</p>' +
-          '<label class="bk-agree"><input type="checkbox" name="agree"> <span>' + T.agree + '</span></label>' +
+          '<label class="bk-agree"><input type="checkbox" name="agree"> <span>' + T.agree + ' <em class="req">' + T.required + '</em></span></label>' +
           '<p class="bk-error" role="alert" hidden></p>' +
           '<button type="submit" class="btn" disabled>' + T.book + '</button>' +
+          '<p class="muted bk-note bk-need">' + T.needAll + '</p>' +
           '<p class="muted bk-note">' + T.payNote + '</p>' +
         '</form>' +
       '</div>';
@@ -295,11 +296,18 @@
     sel.onchange = function () { sum.textContent = yen(s.price * +sel.value); };
     var form = dlg.querySelector(".bk-form"), err = form.querySelector(".bk-error"), btn = form.querySelector("button[type=submit]");
     function showErr(msg) { err.textContent = msg; err.hidden = false; }
-    function reset() { btn.disabled = !form.elements.agree.checked; btn.textContent = T.book; }
+    var need = form.querySelector(".bk-need");
+    function ready() {
+      var f = form.elements;
+      return !!f.name.value.trim() && /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(f.email.value.trim()) && f.agree.checked;
+    }
+    function update() { var ok = ready(); btn.disabled = !ok; need.hidden = ok; }
+    function reset() { update(); btn.textContent = T.book; }
     form.addEventListener("input", function () { err.hidden = true; });
     form.addEventListener("change", function () { err.hidden = true; });
     var agree = form.elements.agree;
-    agree.addEventListener("change", function () { btn.disabled = !agree.checked; });
+    form.addEventListener("input", update);
+    agree.addEventListener("change", update);
     form.onsubmit = function (e) {
       e.preventDefault();
       err.hidden = true;
