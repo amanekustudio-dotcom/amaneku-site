@@ -35,7 +35,7 @@
       shareNote: 'お名前・人数・言語・ご要望は、担当の演奏家にお伝えします（<a href="legal.html#privacy" target="_blank">プライバシーポリシー</a>）。',
       agree: '<a href="legal.html#cancel" target="_blank">キャンセル規定</a>と<a href="legal.html#terms" target="_blank">利用規約</a>に同意します',
       payNote: "次の画面（Stripe）でカード情報を入力し、お支払いが完了した時点で予約が確定します。30分以内にお手続きください。",
-      errors: { slot_unavailable: "申し訳ありません。この回は、ちょうど別の方が予約の手続き中です。別の日時をお選びください。", booking_closed: "この回の受付は締め切りました。", terms_required: "キャンセル規定と利用規約への同意が必要です。", invalid_input: "お名前とメールアドレスを確認してください。", error: "うまくいきませんでした。時間をおいて、もう一度お試しください。" },
+      errors: { slot_unavailable: "申し訳ありません。この回は、ちょうど別の方が予約の手続き中です。別の日時をお選びください。", booking_closed: "この回の受付は締め切りました。", terms_required: "キャンセル規定と利用規約への同意が必要です。", invalid_input: "お名前とメールアドレスを確認してください。", too_many_holds: "短い時間に何度もお手続きいただいたため、受付を一時的に止めています。1時間ほどたってから、もう一度お試しください。", error: "うまくいきませんでした。時間をおいて、もう一度お試しください。" },
       released: "お支払いを中止しました。この回の仮押さえは外れています。",
       readMore: "インタビューを読む", loading: "日程を読み込んでいます…", loadError: "日程を読み込めませんでした。時間をおいて、もう一度開いてください。", only: function (n) { return n + " の日程だけを表示しています"; }, showAll: "すべての演奏家を表示", close: "閉じる", sample: "※ 表示している日程・演奏家・場所はダミーです（架空の人物です）。"
     },
@@ -64,7 +64,7 @@
       shareNote: 'We share your name, number of guests, language and requests with your artist (<a href="legal.html#privacy" target="_blank">Privacy policy</a>).',
       agree: 'I agree to the <a href="legal.html#cancel" target="_blank">cancellation policy</a> and <a href="legal.html#terms" target="_blank">terms of service</a>',
       payNote: "You'll enter your card details on the next screen (Stripe). Your booking is confirmed once payment is complete. Please finish within 30 minutes.",
-      errors: { slot_unavailable: "Sorry, someone else is booking this session right now. Please choose another time.", booking_closed: "Bookings for this session have closed.", terms_required: "Please agree to the cancellation policy and terms of service.", invalid_input: "Please check your name and email.", error: "Something went wrong. Please try again in a moment." },
+      errors: { slot_unavailable: "Sorry, someone else is booking this session right now. Please choose another time.", booking_closed: "Bookings for this session have closed.", terms_required: "Please agree to the cancellation policy and terms of service.", invalid_input: "Please check your name and email.", too_many_holds: "Too many booking attempts in a short time. Please try again in about an hour.", error: "Something went wrong. Please try again in a moment." },
       released: "Payment was cancelled. This session is no longer held for you.",
       readMore: "Read the interview", loading: "Loading dates…", loadError: "We couldn't load the dates. Please try again in a moment.", only: function (n) { return "Showing dates with " + n + " only"; }, showAll: "Show all artists", close: "Close", sample: "Dates, artists and places shown here are placeholders (fictional people)."
     }
@@ -83,21 +83,26 @@
       .formatToParts(new Date(iso)).forEach(function (x) { p[x.type] = x.value; });
     return { d: p.year + "-" + p.month + "-" + p.day, t: (p.hour === "24" ? "00" : p.hour) + ":" + p.minute };
   }
+  // データベースの文字は、画面に入れる前に無害化する（< > & " ' を文字として扱う）
+  function esc(v) { return String(v == null ? "" : v).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
+  function slug(v) { return /^[\w-]{1,80}$/.test(v || "") ? v : "x"; }
+  function photo(v) { v = v || ""; return esc(/^https:\/\//.test(v) ? v : IMG + v.replace(/[^\w.-]/g, "")); }
   function addRow(r) {
+    r.artist_slug = slug(r.artist_slug); r.venue_slug = slug(r.venue_slug);
     var years = r.artist_playing_since ? new Date().getFullYear() - r.artist_playing_since : null;
     ARTISTS[r.artist_slug] = {
-      photo: /^https?:\/\//.test(r.artist_photo_url || "") ? r.artist_photo_url : IMG + (r.artist_photo_url || ""),
-      name: { ja: r.artist_name_ja, en: r.artist_name_en },
+      photo: photo(r.artist_photo_url),
+      name: { ja: esc(r.artist_name_ja), en: esc(r.artist_name_en) },
       school: {
-        ja: (r.artist_role_ja || "長唄") + (years ? " · 演奏歴" + years + "年" : ""),
-        en: (r.artist_role_en || "Nagauta") + (years ? " · " + years + " years" : "")
+        ja: esc(r.artist_role_ja || "長唄") + (years ? " · 演奏歴" + years + "年" : ""),
+        en: esc(r.artist_role_en || "Nagauta") + (years ? " · " + years + " years" : "")
       },
-      bio: { ja: r.artist_bio_ja || "", en: r.artist_bio_en || "" }
+      bio: { ja: esc(r.artist_bio_ja), en: esc(r.artist_bio_en) }
     };
-    PLACES[r.venue_slug] = { name: { ja: r.area_ja, en: r.area_en }, note: { ja: r.access_ja || "", en: r.access_en || "" } };
+    PLACES[r.venue_slug] = { name: { ja: esc(r.area_ja), en: esc(r.area_en) }, note: { ja: esc(r.access_ja), en: esc(r.access_en) } };
     var st = jst(r.starts_at), en = jst(r.ends_at);
-    SLOTS.push({ id: r.slot_id, d: st.d, t: st.t, e: en.t, a: r.artist_slug, p: r.venue_slug, booked: !r.is_available,
-      languages: r.languages, price: r.price_jpy, maxGuests: r.max_guests, minGuests: r.min_guests });
+    SLOTS.push({ id: esc(r.slot_id), d: st.d, t: st.t, e: en.t, a: r.artist_slug, p: r.venue_slug, booked: !r.is_available,
+      languages: (r.languages || []).filter(function (l) { return l === "ja" || l === "en"; }), price: +r.price_jpy || 0, maxGuests: +r.max_guests || 2, minGuests: +r.min_guests || 1 });
   }
 
   var root = document.getElementById("booking-app");
