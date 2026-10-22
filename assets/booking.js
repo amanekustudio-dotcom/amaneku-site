@@ -160,6 +160,10 @@
   // ?date=YYYY-MM-DD で開いたら、その日を選んだ状態にする（演奏家ページの「予約ページで見る」から）
   var dm = /[?&]date=(\d{4}-\d{2}-\d{2})/.exec(location.search);
   if (dm && byDay[dm[1]]) selected = dm[1];
+  // ?slot=<枠のid> で開いたら、その枠の日を選び、詳細の画面まで開く（演奏家ページで枠を押したとき）
+  var sm = /[?&]slot=([0-9a-f-]{36})/i.exec(location.search);
+  var focusSlot = sm ? SLOTS.filter(function (x) { return x.id === sm[1]; })[0] : null;
+  if (focusSlot) selected = focusSlot.d;
   var first = selected ? parse(selected) : today;
   var view = { y: first.getFullYear(), m: first.getMonth() };
   var minView = { y: today.getFullYear(), m: today.getMonth() };
@@ -343,6 +347,7 @@
 
   renderCal();
   renderList(false);
+  if (focusSlot && !focusSlot.booked && (!only || focusSlot.a === only)) openDetail(focusSlot);
   root.insertAdjacentElement("afterend", el("p", "muted bk-sample", T.sample));
   }
 })();
