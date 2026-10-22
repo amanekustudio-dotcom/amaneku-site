@@ -21,7 +21,7 @@
       none: "この日の回はありません。",
       status: function (ok) { return ok ? "予約できます" : "予約済み"; },
       perPerson: "/ 1名",
-      minutes: "60分",
+      minutes: "60分", min: function (n) { return n + "分"; }, piece: "曲", fromArtist: "演奏家より",
       title: "長唄三味線 ― 歌舞伎の音楽を弾く",
       when: "日時", length: "所要時間", where: "場所", artist: "演奏家", price: "料金", guests: "人数", total: "合計",
       addr: "詳しい住所は、予約の確定後にメールでお知らせします。",
@@ -50,7 +50,7 @@
       none: "No sessions on this day.",
       status: function (ok) { return ok ? "Available" : "Booked"; },
       perPerson: "/ person",
-      minutes: "60 min",
+      minutes: "60 min", min: function (n) { return n + " min"; }, piece: "Piece", fromArtist: "From the artist",
       title: "Nagauta Shamisen: Play the Music of Kabuki",
       when: "Date", length: "Duration", where: "Place", artist: "Artist", price: "Price", guests: "Guests", total: "Total",
       addr: "The exact address is emailed to you after your booking is confirmed.",
@@ -102,7 +102,11 @@
     PLACES[r.venue_slug] = { name: { ja: esc(r.area_ja), en: esc(r.area_en) }, note: { ja: esc(r.access_ja), en: esc(r.access_en) } };
     var st = jst(r.starts_at), en = jst(r.ends_at);
     SLOTS.push({ id: esc(r.slot_id), d: st.d, t: st.t, e: en.t, a: r.artist_slug, p: r.venue_slug, booked: !r.is_available,
-      languages: (r.languages || []).filter(function (l) { return l === "ja" || l === "en"; }), price: +r.price_jpy || 0, maxGuests: +r.max_guests || 2, minGuests: +r.min_guests || 1 });
+      languages: (r.languages || []).filter(function (l) { return l === "ja" || l === "en"; }), price: +r.price_jpy || 0, maxGuests: +r.max_guests || 2, minGuests: +r.min_guests || 1,
+      // 体験の型・曲・演奏家のひとこと（演奏家ページで選んだもの）
+      title: { ja: esc(r.title_ja), en: esc(r.title_en) }, dur: +r.duration_min || 60, kanji: esc(r.experience_kanji),
+      piece: { ja: esc(r.piece_name_ja), en: esc(r.piece_name_en) }, pieceAbout: { ja: esc(r.piece_about_ja), en: esc(r.piece_about_en) },
+      msg: { ja: esc(r.message_ja), en: esc(r.message_en) } });
   }
 
   var root = document.getElementById("booking-app");
@@ -239,7 +243,8 @@
         '<div class="info">' +
           '<div class="row1"><span class="time">' + s.t + '<small>–' + s.e + '</small></span><span class="badge' + (s.booked ? " is-full" : "") + '">' + T.status(!s.booked) + '</span></div>' +
           '<div class="nm">' + a.name[LANG] + '</div>' +
-          '<div class="meta"><span>' + p.name[LANG] + '</span><span>' + T.minutes + '</span><span>' + T.private + '</span><span>' + yen(s.price) + ' ' + T.perPerson + '</span></div>' +
+          '<div class="exp-line">' + (s.kanji ? '<b>' + s.kanji + '</b> ' : '') + s.title[LANG] + (s.piece[LANG] ? ' ・ 「' + s.piece[LANG] + '」' : '') + '</div>' +
+          '<div class="meta"><span>' + p.name[LANG] + '</span><span>' + T.min(s.dur) + '</span><span>' + T.private + '</span><span>' + yen(s.price) + ' ' + T.perPerson + '</span></div>' +
         '</div>' +
         '<span class="chev" aria-hidden="true">→</span>';
       c.onclick = function () { if (!s.booked) openDetail(s); };
@@ -262,10 +267,12 @@
         '<p>' + a.bio[LANG] + '</p><a href="artist.html#artist-' + s.a + '">' + T.readMore + ' →</a></div>' +
       '</div>' +
       '<div class="bk-body">' +
-        '<h3>' + T.title + '</h3>' +
+        '<h3>' + (s.title[LANG] || T.title) + '</h3>' +
         '<dl>' +
           '<dt>' + T.when + '</dt><dd>' + T.dateLong(d) + '　' + s.t + '–' + s.e + '</dd>' +
-          '<dt>' + T.length + '</dt><dd>' + T.minutes + '</dd>' +
+          '<dt>' + T.length + '</dt><dd>' + T.min(s.dur) + '</dd>' +
+          (s.piece[LANG] ? '<dt>' + T.piece + '</dt><dd>「' + s.piece[LANG] + '」' + (s.pieceAbout[LANG] ? '<small>' + s.pieceAbout[LANG] + '</small>' : '') + '</dd>' : '') +
+          ((s.msg[LANG] || s.msg.ja) ? '<dt>' + T.fromArtist + '</dt><dd>' + (s.msg[LANG] || s.msg.ja) + '</dd>' : '') +
           '<dt>' + T.where + '</dt><dd>' + p.name[LANG] + '<small>' + p.note[LANG] + '<br>' + T.addr + '</small></dd>' +
           '<dt>' + T.lang + '</dt><dd><div class="seg">' + T.langOpts.filter(function (o) { return s.languages.indexOf(o[0]) >= 0; }).map(function (o, i) { return '<label><input type="radio" name="bk-lang" value="' + o[0] + '"' + (i === 0 ? ' checked' : '') + '><span>' + o[1] + '</span></label>'; }).join('') + '</div></dd>' +
           '<dt>' + T.incl + '</dt><dd>' + T.inclText + '</dd>' +

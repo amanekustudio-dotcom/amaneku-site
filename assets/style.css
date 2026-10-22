@@ -422,6 +422,8 @@ html[lang="ja"] .bk-day { font-size: 1.15rem; }
 .slot-card .nm { font-family: var(--serif-ja); font-size: 1.05rem; letter-spacing: .08em; margin-top: 6px; }
 html[lang="en"] .slot-card .nm { font-family: var(--serif-en); font-size: 1.25rem; letter-spacing: .01em; }
 .slot-card .meta { display: flex; flex-wrap: wrap; gap: 2px 14px; font-size: .8rem; color: var(--ink-soft); margin-top: 2px; }
+.slot-card .exp-line { font-size: .84rem; margin-top: 2px; }
+.slot-card .exp-line b { color: var(--kin); font-weight: 500; font-family: var(--serif-ja); }
 .slot-card .chev { font-family: var(--serif-en); font-size: 1.3rem; color: var(--shu); }
 .slot-card[aria-disabled="true"] { opacity: .5; cursor: not-allowed; }
 .slot-card[aria-disabled="true"]:hover { border-color: var(--line); box-shadow: none; transform: none; }
