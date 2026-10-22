@@ -348,6 +348,6 @@
   renderCal();
   renderList(false);
   if (focusSlot && !focusSlot.booked && (!only || focusSlot.a === only)) openDetail(focusSlot);
-  root.insertAdjacentElement("afterend", el("p", "muted bk-sample", T.sample));
+  // 2026-10-22 から本物の演奏家・日程になったので、「ダミーです」の注記は出さない
   }
 })();
