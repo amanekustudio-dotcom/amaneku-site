@@ -157,6 +157,9 @@
   }
   var openDays = Object.keys(byDay).filter(function (k) { return state(k) === "open"; }).sort();
   var selected = openDays[0] || null;
+  // ?date=YYYY-MM-DD で開いたら、その日を選んだ状態にする（演奏家ページの「予約ページで見る」から）
+  var dm = /[?&]date=(\d{4}-\d{2}-\d{2})/.exec(location.search);
+  if (dm && byDay[dm[1]]) selected = dm[1];
   var first = selected ? parse(selected) : today;
   var view = { y: first.getFullYear(), m: first.getMonth() };
   var minView = { y: today.getFullYear(), m: today.getMonth() };
