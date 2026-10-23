@@ -37,7 +37,7 @@
       payNote: "次の画面（Stripe）でカード情報を入力し、お支払いが完了した時点で予約が確定します。30分以内にお手続きください。",
       errors: { slot_unavailable: "申し訳ありません。この回は、ちょうど別の方が予約の手続き中です。別の日時をお選びください。", booking_closed: "この回の受付は締め切りました。", terms_required: "キャンセル規定と利用規約への同意が必要です。", invalid_input: "お名前とメールアドレスを確認してください。", too_many_holds: "短い時間に何度もお手続きいただいたため、受付を一時的に止めています。1時間ほどたってから、もう一度お試しください。", error: "うまくいきませんでした。時間をおいて、もう一度お試しください。" },
       released: "お支払いを中止しました。この回の仮押さえは外れています。",
-      readMore: "インタビューを読む", loading: "日程を読み込んでいます…", loadError: "日程を読み込めませんでした。時間をおいて、もう一度開いてください。", only: function (n) { return n + " の日程だけを表示しています"; }, showAll: "すべての演奏家を表示", close: "閉じる", sample: "※ 表示している日程・演奏家・場所はダミーです（架空の人物です）。"
+      readMore: "プロフィールを読む", loading: "日程を読み込んでいます…", loadError: "日程を読み込めませんでした。時間をおいて、もう一度開いてください。", only: function (n) { return n + " の日程だけを表示しています"; }, showAll: "すべての演奏家を表示", close: "閉じる", sample: "※ 表示している日程・演奏家・場所はダミーです（架空の人物です）。"
     },
     en: {
       dow: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
@@ -66,7 +66,7 @@
       payNote: "You'll enter your card details on the next screen (Stripe). Your booking is confirmed once payment is complete. Please finish within 30 minutes.",
       errors: { slot_unavailable: "Sorry, someone else is booking this session right now. Please choose another time.", booking_closed: "Bookings for this session have closed.", terms_required: "Please agree to the cancellation policy and terms of service.", invalid_input: "Please check your name and email.", too_many_holds: "Too many booking attempts in a short time. Please try again in about an hour.", error: "Something went wrong. Please try again in a moment." },
       released: "Payment was cancelled. This session is no longer held for you.",
-      readMore: "Read the interview", loading: "Loading dates…", loadError: "We couldn't load the dates. Please try again in a moment.", only: function (n) { return "Showing dates with " + n + " only"; }, showAll: "Show all artists", close: "Close", sample: "Dates, artists and places shown here are placeholders (fictional people)."
+      readMore: "Read her profile", loading: "Loading dates…", loadError: "We couldn't load the dates. Please try again in a moment.", only: function (n) { return "Showing dates with " + n + " only"; }, showAll: "Show all artists", close: "Close", sample: "Dates, artists and places shown here are placeholders (fictional people)."
     }
   }[LANG];
 
