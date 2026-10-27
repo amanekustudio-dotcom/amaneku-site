@@ -19,9 +19,9 @@
   --on-dark: #efe7d8;
   --on-dark-soft: #a99e8b;
 
-  --serif-en: "Cormorant Garamond", "Shippori Mincho", serif;
-  --serif-ja: "Shippori Mincho", "Yu Mincho", serif;
-  --sans: "Noto Sans JP", system-ui, sans-serif;
+  --serif-en: "EB Garamond", "Shippori Mincho", serif;
+  --serif-ja: "EB Garamond", "Shippori Mincho", "Yu Mincho", serif;
+  --sans: "EB Garamond", "Noto Sans JP", system-ui, sans-serif;
 
   --wrap: 1160px;
   --gutter: 16px;
@@ -629,3 +629,6 @@ section.legal { padding: clamp(48px, 8vw, 96px) 0 clamp(80px, 10vw, 128px); }
 .hands img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; }
 .links { display: flex; flex-wrap: wrap; gap: 8px 24px; margin: 0 0 1.6em; }
 .links a { color: var(--ink); text-underline-offset: 4px; }
+
+/* 「AMANEKU Studio について詳しく」（トップの AMANEKUについて） */
+.about-more { color: var(--kin-soft); text-underline-offset: 4px; }
